@@ -63,7 +63,7 @@ async def foo(ctx, arg):
 
 @bot.command()
 async def generate(
-    ctx, prompt: str, height: int = 512, width: int = 512, iter: int = 50
+    ctx, prompt: str, width: int = 512, height: int = 512, iter: int = 50
 ):
     """Stable diffusion generate"""
     await ctx.send("Ok")
@@ -75,8 +75,8 @@ async def generate(
         model="MirageML/lowpoly-world",
         cuda="cuda:0",
         # cuda="cpu",
-        height=height,
         width=width,
+        height=height,
         iter=iter,
     )
     thread.start()
