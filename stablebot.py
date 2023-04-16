@@ -7,6 +7,7 @@ import torch
 from threading import Thread
 import io
 
+# Define a thread for generating images using the StableDiffusionPipeline
 class StableDiffusionGenerator(Thread):
     def __init__(
         self,
@@ -26,12 +27,15 @@ class StableDiffusionGenerator(Thread):
         self.iter = iter
 
     def run(self):
+        # Load the model
         print("Loading model")
         pipe = StableDiffusionPipeline.from_pretrained(
             self.model, torch_dtype=torch.float16
         )
         pipe.enable_xformers_memory_efficient_attention()
         pipe = pipe.to(self.cuda)
+
+        # Generate the image
         print("Generating image")
         self.image = pipe(
             self.prompt,
@@ -40,22 +44,23 @@ class StableDiffusionGenerator(Thread):
             num_inference_steps=self.iter,
         ).images[0]
 
+# Load the configuration variables from a .env file
 config = dotenv_values(".env")
 
+# Define the bot and its description and intents
 description = """A little Stable Diffusion bot"""
-
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="/", description=description, intents=intents)
 
-
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("------")
 
+# Define a function to handle errors in commands
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CheckFailure):
@@ -63,10 +68,8 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(f"An error occurred: {error}")
 
-@bot.command()
-async def foo(ctx, arg):
-    await ctx.send(arg)
-
+# Define a command to generate an image using the StableDiffusionPipeline
+# This command is restricted to a specific channel using a check function
 @bot.command()
 @commands.check(lambda ctx: ctx.channel.id == int(config["CHANNEL_ID"]))
 async def generate(
@@ -74,6 +77,7 @@ async def generate(
 ):
     """Stable diffusion generate"""
     await ctx.send("Ok")
+    # Create a new thread for generating the image
     thread = StableDiffusionGenerator(
         prompt=prompt,
         # model="prompthero/openjourney",  # "andite/anything-v4.0",
@@ -87,8 +91,10 @@ async def generate(
         iter=iter,
     )
     thread.start()
+    # Wait for the thread to finish generating the image
     while thread.is_alive():
         await asyncio.sleep(2)
+    # Send the generated image back to the user as a file
     image = thread.image
     with io.BytesIO() as image_binary:
         image.save(image_binary, "PNG")
