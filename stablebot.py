@@ -6,8 +6,6 @@ from dotenv import dotenv_values
 import torch
 from threading import Thread
 import io
-import time
-
 
 class StableDiffusionGenerator(Thread):
     def __init__(
@@ -58,11 +56,19 @@ async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("------")
 
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.send("Sorry, you cannot use that command in this channel. Go to #imagine-dream instead.")
+    else:
+        await ctx.send(f"An error occurred: {error}")
+
 @bot.command()
 async def foo(ctx, arg):
     await ctx.send(arg)
 
 @bot.command()
+@commands.check(lambda ctx: ctx.channel.id == int(config["CHANNEL_ID"]))
 async def generate(
     ctx, prompt: str, width: int = 512, height: int = 512, iter: int = 50
 ):
