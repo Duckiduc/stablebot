@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext import commands
 from diffusers import StableDiffusionPipeline
@@ -81,7 +82,7 @@ async def generate(
     )
     thread.start()
     while thread.is_alive():
-        time.sleep(2)
+        await asyncio.sleep(2)
     image = thread.image
     with io.BytesIO() as image_binary:
         image.save(image_binary, "PNG")
