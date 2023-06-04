@@ -45,7 +45,7 @@ class StableDiffusionGenerator(Thread):
         ).images[0]
 
 # Load the configuration variables from a .env file
-config = dotenv_values(".env")
+config = dotenv_values(".env.config")
 
 # Define the bot and its description and intents
 description = """A little Stable Diffusion bot"""
